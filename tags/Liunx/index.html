@@ -1,10 +1,10 @@
 
- <!DOCTYPE HTML>
+  <!DOCTYPE HTML>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   
-    <title>tags | dawnpower</title>
+    <title>标签 : Liunx | dawnpower</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
     <meta name="author" content="Pengzhen Liu">
@@ -13,13 +13,12 @@
     
     <meta name="description" content="基于Github和Hexo的静态Blog，希望用简单而清晰的写作方式Markdown分享自己的心得体会。">
 <meta property="og:type" content="website">
-<meta property="og:title" content="tags">
-<meta property="og:url" content="http://dawnpower.github.io/tags/index.html">
+<meta property="og:title" content="dawnpower">
+<meta property="og:url" content="http://dawnpower.github.io/tags/Liunx/index.html">
 <meta property="og:site_name" content="dawnpower">
 <meta property="og:description" content="基于Github和Hexo的静态Blog，希望用简单而清晰的写作方式Markdown分享自己的心得体会。">
-<meta property="og:updated_time" content="2015-09-08T06:59:06.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="tags">
+<meta name="twitter:title" content="dawnpower">
 <meta name="twitter:description" content="基于Github和Hexo的静态Blog，希望用简单而清晰的写作方式Markdown分享自己的心得体会。">
 
     
@@ -76,21 +75,31 @@
 </div>
       </header>
       <div id="container">
-          
+        
+
 <div class="archive-title" >
-<h2 class="tag-icon">标签</h2>
-
-<a data-src="/tags/Liunx/" href="#Liunx" title="Liunx">Liunx<sup>1</sup></a>
-
-<a data-src="/tags/hexo/" href="#hexo" title="hexo">hexo<sup>2</sup></a>
-
+  <h2 class="tag-icon">Liunx</h2>
+  
 </div>
-<div id="main" class="archive-part">
-<div class="all-list-box"></div>
+<div id="main" class="archive-part clearfix">
+  <div id="archive-page">
+
+  <section class="post" itemscope itemprop="blogPost">
+  
+    <a href="/2015/09/23/rpm-install/" title="rpm install" itemprop="url">
+  
+
+    <time datetime="2015-09-23T08:29:29.000Z" itemprop="datePublished">2015-09-23</time>
+
+
+    <h1 itemprop="name">rpm install</h1>
+
+  </a>
+</section>
+
+
+  </div>
 </div>
-
-
-
 
       </div>
       <footer><div id="footer" >
@@ -205,24 +214,6 @@ $(document).ready(function(){
 
 
 
-
-<script type="text/javascript">
-$(document).ready(function(){ 
-  var list    = $('.archive-title a'),
-      box     = $('.all-list-box'),
-      first   = $('.archive-title a:first-of-type');
-      box.load(first.attr('data-src').toString()+' #archive-page');
-      first.addClass('current');
-  list.each(function(){
-    $(this).click(function(){
-      var listSrc=$(this).attr('data-src').toString()+' #archive-page';
-      box.load(listSrc);
-      list.removeClass('current');
-      $(this).addClass('current');
-     });  
-    });
-  }); 
-</script>
 
 
 <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
