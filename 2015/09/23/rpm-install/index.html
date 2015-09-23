@@ -4,35 +4,41 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>git try | dawnpower</title>
+    <title>rpm install | dawnpower</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
     <meta name="author" content="Pengzhen Liu">
     
 
     
-    <meta name="description" content="git常用命令
-#Quick Start
-##git reset
-##git checkout
-##git remote">
+    <meta name="description" content="CentOS rpm 安装JDK1.8 
+##下载安装jdk1.8 
+###先检查系统有没有自带open-jdk 
+$ rpm -qa | grep java | xargs rpm -e --nodeps
+
+###下载JDK 
+$ wget --no-check-certificate --no-cookie --header &quot;Cookie: oraclelicense=accept-secu">
 <meta property="og:type" content="article">
-<meta property="og:title" content="git try">
-<meta property="og:url" content="http://dawnpower.github.io/2015/09/17/git-try/index.html">
+<meta property="og:title" content="rpm install">
+<meta property="og:url" content="http://dawnpower.github.io/2015/09/23/rpm-install/index.html">
 <meta property="og:site_name" content="dawnpower">
-<meta property="og:description" content="git常用命令
-#Quick Start
-##git reset
-##git checkout
-##git remote">
-<meta property="og:updated_time" content="2015-09-23T08:15:36.000Z">
+<meta property="og:description" content="CentOS rpm 安装JDK1.8 
+##下载安装jdk1.8 
+###先检查系统有没有自带open-jdk 
+$ rpm -qa | grep java | xargs rpm -e --nodeps
+
+###下载JDK 
+$ wget --no-check-certificate --no-cookie --header &quot;Cookie: oraclelicense=accept-secu">
+<meta property="og:updated_time" content="2015-09-23T08:30:09.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="git try">
-<meta name="twitter:description" content="git常用命令
-#Quick Start
-##git reset
-##git checkout
-##git remote">
+<meta name="twitter:title" content="rpm install">
+<meta name="twitter:description" content="CentOS rpm 安装JDK1.8 
+##下载安装jdk1.8 
+###先检查系统有没有自带open-jdk 
+$ rpm -qa | grep java | xargs rpm -e --nodeps
+
+###下载JDK 
+$ wget --no-check-certificate --no-cookie --header &quot;Cookie: oraclelicense=accept-secu">
 
     
     <link rel="alternative" href="/atom.xml" title="dawnpower" type="application/atom+xml">
@@ -94,14 +100,14 @@
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2015/09/17/git-try/" title="git try" itemprop="url">git try</a>
+      <a href="/2015/09/23/rpm-install/" title="rpm install" itemprop="url">rpm install</a>
   </h1>
   <p class="article-author">By
        
 		<a href="/about" title="Pengzhen Liu" target="_blank" itemprop="author">Pengzhen Liu</a>
 		
   <p class="article-time">
-    <time datetime="2015-09-17T14:24:11.000Z" itemprop="datePublished"> 发表于 2015-09-17</time>
+    <time datetime="2015-09-23T08:29:29.000Z" itemprop="datePublished"> 发表于 2015-09-23</time>
     
   </p>
 </header>
@@ -114,11 +120,22 @@
 		
 		</div>
 		
-		<p>git常用命令</p>
-<p>#Quick Start</p>
-<p>##git reset</p>
-<p>##git checkout</p>
-<p>##git remote </p>
+		<p>CentOS rpm 安装JDK1.8 </p>
+<p>##下载安装jdk1.8 </p>
+<p>###先检查系统有没有自带open-jdk </p>
+<pre><code class="bash">$ rpm -qa | grep java | xargs rpm <span class="operator">-e</span> --nodeps
+</code></pre>
+<p>###下载JDK </p>
+<pre><code class="bash">$ wget --no-check-certificate --no-cookie --header <span class="string">"Cookie: oraclelicense=accept-securebackup-cookie;"</span> http://download.oracle.com/otn-pub/java/jdk/<span class="number">8</span>u45-b14/jdk-<span class="number">8</span>u45-linux-x64.rpm
+</code></pre>
+<a id="more"></a> 
+<p>因为oracle需要同意协议才能下载，直接wget是无法下载的，所以加上前面的代码 </p>
+<p>###使用rpm命令进行安装 </p>
+<pre><code class="bash">$ rpm -ivh  jdk-<span class="number">8</span>u45-linux-x64.rpm
+</code></pre>
+<p>###检查是否安装成功 </p>
+<pre><code class="bash">$ java -version
+</code></pre>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -131,7 +148,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://dawnpower.github.io/2015/09/17/git-try/" data-title="git try | dawnpower" data-tsina="1691416094" class="share clearfix">
+	  <div data-url="http://dawnpower.github.io/2015/09/23/rpm-install/" data-title="rpm install | dawnpower" data-tsina="1691416094" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -144,19 +161,11 @@
 	
 <nav class="article-nav clearfix">
  
- <div class="prev" >
- <a href="/2015/09/23/rpm-install/" title="rpm install">
-  <strong>上一篇：</strong><br/>
-  <span>
-  rpm install</span>
-</a>
-</div>
-
 
 <div class="next">
-<a href="/2015/09/08/hello-world/"  title="Hello World">
+<a href="/2015/09/17/git-try/"  title="git try">
  <strong>下一篇：</strong><br/> 
- <span>Hello World
+ <span>git try
 </span>
 </a>
 </div>
@@ -165,7 +174,7 @@
 
 	
 <section id="comments" class="comment">
-	<div class="ds-thread" data-thread-key="2015/09/17/git-try/" data-title="git try" data-url="http://dawnpower.github.io/2015/09/17/git-try/"></div>
+	<div class="ds-thread" data-thread-key="2015/09/23/rpm-install/" data-title="rpm install" data-url="http://dawnpower.github.io/2015/09/23/rpm-install/"></div>
 </section>
 
 
