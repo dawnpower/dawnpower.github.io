@@ -1,0 +1,494 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>analyse yum | dawnpower</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Pengzhen Liu">
+    
+
+    
+    <meta name="description" content="Yum工作原理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="analyse yum">
+<meta property="og:url" content="http://dawnpower.github.io/2016/03/05/analyse-yum/index.html">
+<meta property="og:site_name" content="dawnpower">
+<meta property="og:description" content="Yum工作原理">
+<meta property="og:updated_time" content="2016-03-05T02:46:35.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="analyse yum">
+<meta name="twitter:description" content="Yum工作原理">
+
+    
+    <link rel="alternative" href="/atom.xml" title="dawnpower" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="dawnpower" title="dawnpower"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="dawnpower">dawnpower</a></h1>
+				<h2 class="blog-motto">好好学习，好好吃饭，好好锻炼，好好睡觉</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+						<li><a href="/tags">Tags</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:dawnpower.github.io">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/03/05/analyse-yum/" title="analyse yum" itemprop="url">analyse yum</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Pengzhen Liu" target="_blank" itemprop="author">Pengzhen Liu</a>
+		
+  <p class="article-time">
+    <time datetime="2016-03-05T02:16:54.000Z" itemprop="datePublished"> 发表于 2016-03-05</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Yum_Compotents"><span class="toc-number">1.</span> <span class="toc-text">Yum Compotents</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Yum_服务器（repository仓库）"><span class="toc-number">1.1.</span> <span class="toc-text">Yum 服务器（repository仓库）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Yum客户端"><span class="toc-number">1.2.</span> <span class="toc-text">Yum客户端</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#YUM_Client_process"><span class="toc-number">2.</span> <span class="toc-text">YUM Client process</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Client_code_analysis"><span class="toc-number">3.</span> <span class="toc-text">Client code analysis</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#appendix_(rpm/lib/rpmvercmp-c)"><span class="toc-number">4.</span> <span class="toc-text">appendix (rpm/lib/rpmvercmp.c)</span></a></li></ol>
+		
+		</div>
+		
+		<h2 id="Yum_Compotents">Yum Compotents</h2><h3 id="Yum_服务器（repository仓库）">Yum 服务器（repository仓库）</h3><blockquote>
+<ol>
+<li>数据：rpm包</li>
+<li>元数据：rpm包的属性，包括大小，版本，依赖关系，通过createrepo命令生成，保存在repodata中</li>
+</ol>
+</blockquote>
+<p>所有要发行的rpm包都放在yum服务器以供下载，rpm包根据kernel版本号，cpu版本号分别编译发布，yum服务器只要提供简单的下载。Yum服务器最重要的环节就是整理出每个rpm包的基本信息即元数据metadata，yum服务器上提供了createrepo工具用于把rpm包的基本概要信息做成一张清单—-元数据<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ createrepo -o /var/www/yum/centos/<span class="number">5</span>/i386/ /var/www/yum/centos/<span class="number">5</span>/i386</span><br><span class="line"><span class="number">3</span>/<span class="number">3</span> - rpm_<span class="built_in">test</span>-<span class="number">0.0</span>.<span class="number">1</span>-<span class="number">3</span>.noarch.rpm</span><br><span class="line">Saving Primary metadata</span><br><span class="line">Saving file lists metadata</span><br><span class="line">Saving other metadata</span><br></pre></td></tr></table></figure></p>
+<p>在createrepo之后会在/var/www/yum/centos/5/i386/生成下面的目录和文件<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ tree repodata/</span><br><span class="line">repodata/</span><br><span class="line">|-- filelists.xml.gz</span><br><span class="line">|-- other.xml.gz</span><br><span class="line">|-- primary.xml.gz</span><br><span class="line">`-- repomd.xml</span><br></pre></td></tr></table></figure></p>
+<p>Filelists.xml记录了rpm包列表，版本号，配置信息<br>Primary.xml记录了rpm包的依赖信息<br><a id="more"></a></p>
+<h3 id="Yum客户端">Yum客户端</h3><p>Client每次调用yum install或search都去解析/etc/yum.repo.d下面所有以.repo结尾的配置文件，这些文件指定了yum服务器的地址。Yum定期更新yum服务器上rpm包的清单，把清单保存到yum的本地cache里面，默认在/var/cache/yum。根据清单信息描述，来确定安装包的名字版本号，所需要的依赖包，再去下载rpm包。<br>本地yum cache /var/cache/yum,每个repo记录的cache<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">/var/cache/yum/</span><br><span class="line">|-- base</span><br><span class="line">|   |-- cachecookie</span><br><span class="line">|   |-- mirrorlist.txt</span><br><span class="line">|   |-- packages</span><br><span class="line">|   |-- primary.xml.gz</span><br><span class="line">|   |-- primary.xml.gz.sqlite</span><br><span class="line">|   `-- repomd.xml</span><br><span class="line">|-- epel</span><br><span class="line">|   |-- <span class="number">76</span>c4dcbfaf075e55d5876839eb11c4f33b3a2495-primary.sqlite</span><br><span class="line">|   |-- cachecookie</span><br><span class="line">|   |-- mirrorlist.txt</span><br><span class="line">|   |-- packages</span><br><span class="line">|   `-- repomd.xml</span><br><span class="line">|-- firefoxbug</span><br><span class="line">|   |-- cachecookie</span><br><span class="line">|   |-- packages</span><br><span class="line">|   |-- primary.xml.gz</span><br><span class="line">|   |-- primary.xml.gz.sqlite</span><br><span class="line">|   `-- repomd.xml</span><br><span class="line">|-- timedhosts.txt</span><br><span class="line">|-- updates</span><br><span class="line">|   |-- cachecookie</span><br><span class="line">|   |-- mirrorlist.txt</span><br><span class="line">|   |-- packages</span><br><span class="line">|   |-- primary.sqlite</span><br><span class="line">|   `-- repomd.xml</span><br></pre></td></tr></table></figure></p>
+<p>我的本地机器的cache<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@mthz3mpi001 qa_os_centos6.<span class="number">5</span>_x86_64]<span class="comment"># pwd</span></span><br><span class="line">/var/cache/yum/x86_64/<span class="number">6</span>/qa_os_centos6.<span class="number">5</span>_x86_64</span><br><span class="line">[root@mthz3mpi001 qa_os_centos6.<span class="number">5</span>_x86_64]<span class="comment"># ll</span></span><br><span class="line">total <span class="number">15728</span></span><br><span class="line">-rw------- <span class="number">1</span> root root        <span class="number">0</span> Jan  <span class="number">8</span> <span class="number">01</span>:<span class="number">34</span> cachecookie</span><br><span class="line">drwx------ <span class="number">2</span> root root     <span class="number">4096</span> Jan  <span class="number">7</span> <span class="number">03</span>:<span class="number">06</span> packages</span><br><span class="line">-rw------- <span class="number">1</span> root root  <span class="number">1470397</span> Oct <span class="number">25</span> <span class="number">15</span>:<span class="number">01</span> primary.xml.gz</span><br><span class="line">-rw------- <span class="number">1</span> root root <span class="number">14625792</span> Jan  <span class="number">6</span> <span class="number">03</span>:<span class="number">19</span> primary.xml.gz.sqlite</span><br><span class="line">-rw------- <span class="number">1</span> root root     <span class="number">1214</span> Oct <span class="number">25</span> <span class="number">15</span>:<span class="number">01</span> repomd.xml</span><br></pre></td></tr></table></figure></p>
+<p>primary.xml.gz就是yum服务器上的”清单”，但是这里以sqlite方式存储了，可以查看sqlite的db<br>每次安装yum包都会来查询这个sqlite的DB<br>timedhosts.txt这个文件记录着所有源地址访问所需要的时间，可以查到哪些源的地址比较慢</p>
+<h2 id="YUM_Client_process">YUM Client process</h2><blockquote>
+<ol>
+<li>获取仓库元数据<br>Yum会先将仓库的元数据缓存于本地的/var/cache/yum</li>
+<li>安装程序包<br>Yum 分析本地的元数据文件，结合本地系统环境（已经安装的包）做出要安装的程序决策</li>
+<li>获取程序包<br>根据决策联系yum仓库，下载各程序包缓存于本地后，一并安装</li>
+</ol>
+</blockquote>
+<h2 id="Client_code_analysis">Client code analysis</h2><p>before code</p>
+<p>RPM package names are made up of 5 parts: the package name, epoch, version, release, architecture. This format is commonly referred to as the acronym NEVRA. And the format for the whole string is n-e:v-r.a (i.e foo-0:1.2.3-el5)<br>In a word, yum compare just compare E.V.R<br>e.g a sample using labelCompare:<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> rpm</span><br><span class="line"><span class="comment"># t1 and t2 are tuples of (version, release)</span></span><br><span class="line"><span class="comment"># return 1: a is newer than b</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 0: a and b are the same version</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># -1: b is newer than a</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">compare</span><span class="params">(t1, t2)</span>:</span></span><br><span class="line">    v1, r1 = t1</span><br><span class="line">    v2, r2 = t2</span><br><span class="line">    <span class="keyword">return</span> rpm.labelCompare((<span class="string">'1'</span>, v1, r1), (<span class="string">'1'</span>, v2, r2))</span><br><span class="line"> </span><br><span class="line">t1 = [<span class="string">'foo'</span>,<span class="string">'1.2.5'</span>]</span><br><span class="line">t2 = [<span class="string">'foo'</span>,<span class="string">'1.2.1'</span>]</span><br><span class="line">t3 = [<span class="string">'foo'</span>,<span class="string">'1.2.1'</span>]</span><br><span class="line"> </span><br><span class="line"><span class="keyword">print</span> compare(t1,t2)</span><br><span class="line"><span class="keyword">print</span> compare(t2,t3)</span><br><span class="line"><span class="keyword">print</span> compare(t2,t1)</span><br></pre></td></tr></table></figure></p>
+<p>result:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@hugwang3 yumtest]<span class="comment"># python cmp.py</span></span><br><span class="line"><span class="number">1</span></span><br><span class="line"><span class="number">0</span></span><br><span class="line">-<span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>最后贴上rpm版本比较的源码</p>
+<h2 id="appendix_(rpm/lib/rpmvercmp-c)">appendix (rpm/lib/rpmvercmp.c)</h2><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br></pre></td><td class="code"><pre><span class="line">include "system.h"</span><br><span class="line">#include &lt;rpmlib.h&gt;</span><br><span class="line">#include "debug.h"</span><br><span class="line"> </span><br><span class="line">/* compare alpha and numeric segments of two versions */</span><br><span class="line">/* return 1: a is newer than b */</span><br><span class="line">/*        0: a and b are the same version */</span><br><span class="line">/*       -1: b is newer than a */</span><br><span class="line">int rpmvercmp(const char * a, const char * b)</span><br><span class="line">&#123;</span><br><span class="line">    char oldch1, oldch2;</span><br><span class="line">    char * str1, * str2;</span><br><span class="line">    char * one, * two;</span><br><span class="line">    int rc;</span><br><span class="line">    int isnum;</span><br><span class="line"> </span><br><span class="line">    /* easy comparison to see if versions are identical */</span><br><span class="line">    if (!strcmp(a, b)) return 0;</span><br><span class="line">    str1 = alloca(strlen(a) + 1);</span><br><span class="line">    str2 = alloca(strlen(b) + 1);</span><br><span class="line"> </span><br><span class="line">    strcpy(str1, a);</span><br><span class="line">    strcpy(str2, b);</span><br><span class="line"> </span><br><span class="line">    one = str1;</span><br><span class="line">    two = str2;</span><br><span class="line"> </span><br><span class="line">    /* loop through each version segment of str1 and str2 and compare them */</span><br><span class="line">    /*@-branchstate@*/</span><br><span class="line">/*@-boundsread@*/</span><br><span class="line">    while (*one &amp;&amp; *two) &#123;</span><br><span class="line">        while (*one &amp;&amp; !xisalnum(*one)) one++;</span><br><span class="line">        while (*two &amp;&amp; !xisalnum(*two)) two++;</span><br><span class="line"> </span><br><span class="line">        /* If we ran to the end of either, we are finished with the loop */</span><br><span class="line">        if (!(*one &amp;&amp; *two)) break;</span><br><span class="line"> </span><br><span class="line">        str1 = one;</span><br><span class="line">        str2 = two;</span><br><span class="line">        /* grab first completely alpha or completely numeric segment */</span><br><span class="line">        /* leave one and two pointing to the start of the alpha or numeric */</span><br><span class="line">        /* segment and walk str1 and str2 to end of segment */</span><br><span class="line">        if (xisdigit(*str1)) &#123;</span><br><span class="line">            while (*str1 &amp;&amp; xisdigit(*str1)) str1++;</span><br><span class="line">            while (*str2 &amp;&amp; xisdigit(*str2)) str2++;</span><br><span class="line">            isnum = 1;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            while (*str1 &amp;&amp; xisalpha(*str1)) str1++;</span><br><span class="line">            while (*str2 &amp;&amp; xisalpha(*str2)) str2++;</span><br><span class="line">            isnum = 0;</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        /* save character at the end of the alpha or numeric segment */</span><br><span class="line">        /* so that they can be restored after the comparison */</span><br><span class="line">/*@-boundswrite@*/</span><br><span class="line">        oldch1 = *str1;</span><br><span class="line">        *str1 = '\0';</span><br><span class="line">        oldch2 = *str2;</span><br><span class="line">        *str2 = '\0';</span><br><span class="line">/*@=boundswrite@*/</span><br><span class="line"> </span><br><span class="line">        /* this cannot happen, as we previously tested to make sure that */</span><br><span class="line">        /* the first string has a non-null segment */</span><br><span class="line">        if (one == str1) return -1;     /* arbitrary */</span><br><span class="line"> </span><br><span class="line">        /* take care of the case where the two version segments are */</span><br><span class="line">        /* different types: one numeric, the other alpha (i.e. empty) */</span><br><span class="line">        /* numeric segments are always newer than alpha segments */</span><br><span class="line">        /* XXX See patch #60884 (and details) from bugzilla #50977. */</span><br><span class="line">        if (two == str2) return (isnum ? 1 : -1);</span><br><span class="line"> </span><br><span class="line">        if (isnum) &#123;</span><br><span class="line">            /* this used to be done by converting the digit segments */</span><br><span class="line">            /* to ints using atoi() - it's changed because long  */</span><br><span class="line">            /* digit segments can overflow an int - this should fix that. */</span><br><span class="line"> </span><br><span class="line">            /* throw away any leading zeros - it's a number, right? */</span><br><span class="line">            while (*one == '0') one++;</span><br><span class="line">            while (*two == '0') two++;</span><br><span class="line">            /* whichever number has more digits wins */</span><br><span class="line">            if (strlen(one) &gt; strlen(two)) return 1;</span><br><span class="line">            if (strlen(two) &gt; strlen(one)) return -1;</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        /* strcmp will return which one is greater - even if the two */</span><br><span class="line">        /* segments are alpha or if they are numeric.  don't return  */</span><br><span class="line">        /* if they are equal because there might be more segments to */</span><br><span class="line">        /* compare */</span><br><span class="line">        rc = strcmp(one, two);</span><br><span class="line">        if (rc) return (rc &lt; 1 ? -1 : 1);</span><br><span class="line"> </span><br><span class="line">        /* restore character that was replaced by null above */</span><br><span class="line">/*@-boundswrite@*/</span><br><span class="line">        *str1 = oldch1;</span><br><span class="line">        one = str1;</span><br><span class="line">        *str2 = oldch2;</span><br><span class="line">        two = str2;</span><br><span class="line">/*@=boundswrite@*/</span><br><span class="line">    &#125;</span><br><span class="line">   /*@=branchstate@*/</span><br><span class="line">/*@=boundsread@*/</span><br><span class="line"> </span><br><span class="line">    /* this catches the case where all numeric and alpha segments have */</span><br><span class="line">    /* compared identically but the segment sepparating characters were */</span><br><span class="line">    /* different */</span><br><span class="line">/*@-boundsread@*/</span><br><span class="line">    if ((!*one) &amp;&amp; (!*two)) return 0;</span><br><span class="line"> </span><br><span class="line">    /* whichever version still has characters left over wins */</span><br><span class="line">    if (!*one) return -1; else return 1;</span><br><span class="line">/*@=boundsread@*/</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/yum/">yum</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://dawnpower.github.io/2016/03/05/analyse-yum/" data-title="analyse yum | dawnpower" data-tsina="1691416094" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/2015/09/23/rpm-install/"  title="CentOS rpm install JDK1.8">
+ <strong>下一篇：</strong><br/> 
+ <span>CentOS rpm install JDK1.8
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/03/05/analyse-yum/" data-title="analyse yum" data-url="http://dawnpower.github.io/2016/03/05/analyse-yum/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Yum_Compotents"><span class="toc-number">1.</span> <span class="toc-text">Yum Compotents</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Yum_服务器（repository仓库）"><span class="toc-number">1.1.</span> <span class="toc-text">Yum 服务器（repository仓库）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Yum客户端"><span class="toc-number">1.2.</span> <span class="toc-text">Yum客户端</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#YUM_Client_process"><span class="toc-number">2.</span> <span class="toc-text">YUM Client process</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Client_code_analysis"><span class="toc-number">3.</span> <span class="toc-text">Client code analysis</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#appendix_(rpm/lib/rpmvercmp-c)"><span class="toc-number">4.</span> <span class="toc-text">appendix (rpm/lib/rpmvercmp.c)</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/hexo/" title="hexo">hexo<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Liunx/" title="Liunx">Liunx<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/git/" title="git">git<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/yum/" title="yum">yum<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://wuchong.me" target="_blank" title="Jark&#39;s Blog">Jark&#39;s Blog</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=1691416094&verifier=47bdb406&dpc=1"></iframe>
+</div>
+
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Liunx/" style="font-size: 10px;">Liunx</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/hexo/" style="font-size: 20px;">hexo</a> <a href="/tags/yum/" style="font-size: 10px;">yum</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m Pengzhen Liu in ZJU. <br/>
+			This is my blog.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/1691416094" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/dawnpower" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:dawnpower@outlook.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2016 
+		
+		<a href="/about" target="_blank" title="Pengzhen Liu">Pengzhen Liu</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"dpdp"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

@@ -83,6 +83,73 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2016/03/05/analyse-yum/" title="analyse yum" itemprop="url">analyse yum</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Pengzhen Liu" target="_blank" itemprop="author">Pengzhen Liu</a>
+		
+  <p class="article-time">
+    <time datetime="2016-03-05T02:16:54.000Z" itemprop="datePublished"> 发表于 2016-03-05</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="Yum_Compotents">Yum Compotents</h2><h3 id="Yum_服务器（repository仓库）">Yum 服务器（repository仓库）</h3><blockquote>
+<ol>
+<li>数据：rpm包</li>
+<li>元数据：rpm包的属性，包括大小，版本，依赖关系，通过createrepo命令生成，保存在repodata中</li>
+</ol>
+</blockquote>
+<p>所有要发行的rpm包都放在yum服务器以供下载，rpm包根据kernel版本号，cpu版本号分别编译发布，yum服务器只要提供简单的下载。Yum服务器最重要的环节就是整理出每个rpm包的基本信息即元数据metadata，yum服务器上提供了createrepo工具用于把rpm包的基本概要信息做成一张清单—-元数据<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ createrepo -o /var/www/yum/centos/<span class="number">5</span>/i386/ /var/www/yum/centos/<span class="number">5</span>/i386</span><br><span class="line"><span class="number">3</span>/<span class="number">3</span> - rpm_<span class="built_in">test</span>-<span class="number">0.0</span>.<span class="number">1</span>-<span class="number">3</span>.noarch.rpm</span><br><span class="line">Saving Primary metadata</span><br><span class="line">Saving file lists metadata</span><br><span class="line">Saving other metadata</span><br></pre></td></tr></table></figure></p>
+<p>在createrepo之后会在/var/www/yum/centos/5/i386/生成下面的目录和文件<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ tree repodata/</span><br><span class="line">repodata/</span><br><span class="line">|-- filelists.xml.gz</span><br><span class="line">|-- other.xml.gz</span><br><span class="line">|-- primary.xml.gz</span><br><span class="line">`-- repomd.xml</span><br></pre></td></tr></table></figure></p>
+<p>Filelists.xml记录了rpm包列表，版本号，配置信息<br>Primary.xml记录了rpm包的依赖信息<br>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2016/03/05/analyse-yum/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/yum/">yum</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/03/05/analyse-yum/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/03/05/analyse-yum/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2015/09/23/rpm-install/" title="CentOS rpm install JDK1.8" itemprop="url">CentOS rpm install JDK1.8</a>
   </h1>
   <p class="article-author">By
@@ -346,6 +413,10 @@
 				<li><a href="/tags/git/" title="git">git<sup>1</sup></a></li>
 			
 		
+			
+				<li><a href="/tags/yum/" title="yum">yum<sup>1</sup></a></li>
+			
+		
 		</ul>
 </div>
 
@@ -376,7 +447,7 @@
   <div class="tagcloudlist">
     <p class="asidetitle">标签云</p>
     <div class="tagcloudlist clearfix">
-       <a href="/tags/Liunx/" style="font-size: 10px;">Liunx</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/hexo/" style="font-size: 20px;">hexo</a>
+       <a href="/tags/Liunx/" style="font-size: 10px;">Liunx</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/hexo/" style="font-size: 20px;">hexo</a> <a href="/tags/yum/" style="font-size: 10px;">yum</a>
     </div>
   </div>
 
@@ -419,7 +490,7 @@
 		
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2016 
 		
 		<a href="/about" target="_blank" title="Pengzhen Liu">Pengzhen Liu</a>
 		
